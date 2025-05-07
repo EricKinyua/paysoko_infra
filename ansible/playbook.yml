@@ -1,0 +1,45 @@
+- name: Configure Laravel + Node.js servers
+  hosts: webservers
+  become: true
+  tasks:
+    - name: Update and upgrade
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install software-properties-common
+      apt:
+        name: software-properties-common
+        state: present
+
+    - name: Add ondrej/php PPA for PHP 8.2
+      apt_repository:
+        repo: ppa:ondrej/php
+        state: present
+        update_cache: yes
+
+    - name: Install PHP 8.2 and extensions
+      apt:
+        name:
+          - php8.2
+          - php8.2-cli
+          - php8.2-mbstring
+          - php8.2-xml
+          - php8.2-bcmath
+          - php8.2-curl
+          - php8.2-mysql
+          - php8.2-zip
+          - php8.2-gd
+        state: present
+
+    - name: Install Composer
+      apt:
+        name: composer
+        state: present
+
+    - name: Install Node.js v18
+      shell: |
+        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+        apt install -y nodejs
+      args:
+        executable: /bin/bash

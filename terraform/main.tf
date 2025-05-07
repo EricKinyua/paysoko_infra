@@ -16,7 +16,7 @@ resource "digitalocean_droplet" "server" {
   ssh_keys = [digitalocean_ssh_key.default.id]
   tags     = ["dev"]
 
-  user_data = file("setup.sh")
+  # user_data = file("setup.sh")
 }
 # Create a PostgreSQL database cluster
 #Provision a managed database instance
