@@ -32,12 +32,12 @@ jobs:
       uses: hashicorp/setup-terraform@v3
 
     - name: Initialize Terraform
-      run: terraform init
+      run: terraform -chdir=terraform init
 
-    - name: Plan Terraform
+    - name: Apply Terraform
       env:
         DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-      run: terraform plan
+      run: terraform -chdir=terraform apply -auto-approve
 
     - name: Generate Ansible inventory from Terraform output
       run: |
