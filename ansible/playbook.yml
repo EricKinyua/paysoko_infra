@@ -8,190 +8,196 @@
     laravel_dir: /var/www/laravel
 
   tasks:
-    - name: Update and upgrade packages
-      apt:
-        update_cache: yes
-        upgrade: dist
+  - name: Update and upgrade packages
+    apt:
+      update_cache: yes
+      upgrade: dist
 
-    - name: Install required packages
-      apt:
-        name:
-          - software-properties-common
-          - apache2
-          - curl
-        state: present
+  - name: Install required packages
+    apt:
+      name:
+      - software-properties-common
+      - apache2
+      - curl
+      state: present
 
-    - name: Add PHP PPA
-      apt_repository:
-        repo: ppa:ondrej/php
-        state: present
-        update_cache: yes
+  - name: Add PHP PPA
+    apt_repository:
+      repo: ppa:ondrej/php
+      state: present
+      update_cache: yes
 
-    - name: Install PHP 8.2 and Laravel dependencies
-      apt:
-        name:
-          - php8.2
-          - php8.2-cli
-          - php8.2-mbstring
-          - php8.2-xml
-          - php8.2-bcmath
-          - php8.2-curl
-          - php8.2-mysql
-          - php8.2-zip
-          - php8.2-gd
-          - composer
-        state: present
+  - name: Install PHP 8.2 and Laravel dependencies
+    apt:
+      name:
+      - php8.2
+      - php8.2-cli
+      - php8.2-mbstring
+      - php8.2-xml
+      - php8.2-bcmath
+      - php8.2-curl
+      - php8.2-mysql
+      - php8.2-zip
+      - php8.2-gd
+      - composer
+      state: present
 
-    - name: Install Node.js v18
-      shell: |
-        curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-        apt install -y nodejs
-      args:
-        executable: /bin/bash
+  - name: Install Node.js v18
+    shell: |
+      curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      apt install -y nodejs
+    args:
+      executable: /bin/bash
 
-    - name: Enable Apache proxy modules
-      shell: a2enmod {{ item }}
-      loop:
-        - proxy
-        - proxy_http
-        - proxy_balancer
-        - lbmethod_byrequests
-        - headers
-        - rewrite
-      notify: Restart Apache
+  - name: Enable Apache proxy modules
+    shell: a2enmod {{ item }}
+    loop:
+    - proxy
+    - proxy_http
+    - proxy_balancer
+    - lbmethod_byrequests
+    - headers
+    - rewrite
+    notify: Restart Apache
 
-    - name: Configure Apache reverse proxy
-      copy:
-        dest: /etc/apache2/sites-available/reverse-proxy.conf
-        content: |
-          <VirtualHost *:80>
-              ServerAdmin webmaster@localhost
-              ServerName {{ inventory_hostname }}
+  - name: Configure Apache reverse proxy
+    copy:
+      dest: /etc/apache2/sites-available/reverse-proxy.conf
+      content: |
+        <VirtualHost *:80>
+            ServerAdmin webmaster@localhost
+            ServerName {{ inventory_hostname }}
 
-              ProxyPreserveHost On
-              ProxyPass /laravel http://localhost:8000/
-              ProxyPassReverse /laravel http://localhost:8000/
+            ProxyPreserveHost On
+            ProxyPass /laravel/laravel http://localhost:8000/
+            ProxyPassReverse /laravel/laravel http://localhost:8000/
 
-              ProxyPass /node1 http://localhost:3000/
-              ProxyPassReverse /node1 http://localhost:3000/
+            ProxyPass /node1/node http://localhost:3000/
+            ProxyPassReverse /node1/node http://localhost:3000/
 
-              ProxyPass /node2 http://localhost:3001/
-              ProxyPassReverse /node2 http://localhost:3001/
+            ProxyPass /node2/node http://localhost:3001/
+            ProxyPassReverse /node2/node http://localhost:3001/
 
-              ErrorLog ${APACHE_LOG_DIR}/error.log
-              CustomLog ${APACHE_LOG_DIR}/access.log combined
-          </VirtualHost>
+            ErrorLog ${APACHE_LOG_DIR}/error.log
+            CustomLog ${APACHE_LOG_DIR}/access.log combined
+        </VirtualHost>
 
-    - name: Disable default Apache site
-      file:
-        path: /etc/apache2/sites-enabled/000-default.conf
-        state: absent
+  - name: Disable default Apache site
+    file:
+      path: /etc/apache2/sites-enabled/000-default.conf
+      state: absent
 
-    - name: Enable reverse proxy site
-      file:
-        src: /etc/apache2/sites-available/reverse-proxy.conf
-        dest: /etc/apache2/sites-enabled/reverse-proxy.conf
-        state: link
-      notify: Restart Apache
+  - name: Enable reverse proxy site
+    file:
+      src: /etc/apache2/sites-available/reverse-proxy.conf
+      dest: /etc/apache2/sites-enabled/reverse-proxy.conf
+      state: link
+    notify: Restart Apache
 
-    - name: Create directories for Laravel and Node apps
-      file:
-        path: "{{ item }}"
-        state: directory
-        owner: www-data
-        group: www-data
-        mode: "0755"
-      loop:
-        - "{{ laravel_dir }}"
-        - "{{ node1_dir }}"
-        - "{{ node2_dir }}"
+  - name: Create directories for Laravel and Node apps
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: www-data
+      group: www-data
+      mode: "0755"
+    loop:
+    - "{{ laravel_dir }}"
+    - "{{ node1_dir }}"
+    - "{{ node2_dir }}"
 
-    - name: Copy folder
-      copy:
-        src: /srv/myfiles/foo.conf
-        dest: /etc/foo.conf
-        owner: www-data
-        group: www-data
-        mode: "0755"
+  - name: Copy Laravel and Node app folders
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: www-data
+      group: www-data
+      mode: "0755"
+    loop:
+    - { src: ./../laravel, dest: "{{ laravel_dir }}" }
+    - { src: ./../node, dest: "{{ node1_dir }}" }
+    - { src: ./../node, dest: "{{ node2_dir }}" }
 
-    - name: Create systemd service for Laravel
-      copy:
-        dest: /etc/systemd/system/laravel.service
-        content: |
-          [Unit]
-          Description=Laravel Dev Server
-          After=network.target
+  - name: Create systemd service for Laravel
+    copy:
+      dest: /etc/systemd/system/laravel.service
+      content: |
+        [Unit]
+        Description=Laravel Dev Server
+        After=network.target
 
-          [Service]
-          Type=simple
-          User=root
-          WorkingDirectory={{ laravel_dir }}
-          ExecStart=/usr/bin/php artisan serve --host=0.0.0.0 --port=8000
-          Restart=always
+        [Service]
+        Type=simple
+        User=root
+        WorkingDirectory={{ laravel_dir }}
+        ExecStart=/usr/bin/php artisan serve --host=0.0.0.0 --port=8000
+        Restart=always
 
-          [Install]
-          WantedBy=multi-user.target
+        [Install]
+        WantedBy=multi-user.target
 
-    - name: Create systemd service for Node app 1
-      copy:
-        dest: /etc/systemd/system/node1.service
-        content: |
-          [Unit]
-          Description=Node.js App 1
-          After=network.target
+  - name: Create systemd service for Node app 1
+    copy:
+      dest: /etc/systemd/system/node1.service
+      content: |
+        [Unit]
+        Description=Node.js App 1
+        After=network.target
 
-          [Service]
-          ExecStart=/usr/bin/node {{ node1_dir }}/app.js
-          Restart=always
-          User=root
-          Environment=NODE_ENV=production
-          WorkingDirectory={{ node1_dir }}
+        [Service]
+        ExecStart=/usr/bin/node {{ node1_dir }}/node/app.js
+        Restart=always
+        User=root
+        Environment=NODE_ENV=production
+        Environment=PORT=3000
+        WorkingDirectory={{ node1_dir }}/node
 
-          [Install]
-          WantedBy=multi-user.target
+        [Install]
+        WantedBy=multi-user.target
 
-    - name: Create systemd service for Node app 2
-      copy:
-        dest: /etc/systemd/system/node2.service
-        content: |
-          [Unit]
-          Description=Node.js App 2
-          After=network.target
+  - name: Create systemd service for Node app 2
+    copy:
+      dest: /etc/systemd/system/node2.service
+      content: |
+        [Unit]
+        Description=Node.js App 2
+        After=network.target
 
-          [Service]
-          ExecStart=/usr/bin/node {{ node2_dir }}/app.js
-          Restart=always
-          User=root
-          Environment=NODE_ENV=production
-          WorkingDirectory={{ node2_dir }}
+        [Service]
+        ExecStart=/usr/bin/node {{ node2_dir }}/node/app.js
+        Restart=always
+        User=root
+        Environment=NODE_ENV=production
+        Environment=PORT=3001
+        WorkingDirectory={{ node2_dir }}/node
 
-          [Install]
-          WantedBy=multi-user.target
+        [Install]
+        WantedBy=multi-user.target
 
-    - name: Reload systemd
-      systemd:
-        daemon_reload: yes
+  - name: Reload systemd
+    systemd:
+      daemon_reload: yes
 
-    - name: Enable and start Laravel service
-      systemd:
-        name: laravel
-        enabled: yes
-        state: started
+  - name: Enable and start Laravel service
+    systemd:
+      name: laravel
+      enabled: yes
+      state: started
 
-    - name: Enable and start Node1 service
-      systemd:
-        name: node1
-        enabled: yes
-        state: started
+  - name: Enable and start Node1 service
+    systemd:
+      name: node1
+      enabled: yes
+      state: started
 
-    - name: Enable and start Node2 service
-      systemd:
-        name: node2
-        enabled: yes
-        state: started
+  - name: Enable and start Node2 service
+    systemd:
+      name: node2
+      enabled: yes
+      state: started
 
   handlers:
-    - name: Restart Apache
-      service:
-        name: apache2
-        state: restarted
+  - name: Restart Apache
+    service:
+      name: apache2
+      state: restarted
