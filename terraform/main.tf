@@ -8,7 +8,7 @@ resource "digitalocean_ssh_key" "default" {
 }
 
 resource "digitalocean_droplet" "server" {
-  count    = 5
+  count    = 1
   image    = "ubuntu-22-04-x64"
   name     = "server-${count.index + 1}"
   region   = "nyc2"

@@ -1,0 +1,50 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+    - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      ANSIBLE_HOST_KEY_CHECKING: false
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up SSH key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip ansible jq python3-pip
+        pip3 install ansible
+
+    - name: Set up Terraform
+      uses: hashicorp/setup-terraform@v3
+
+    - name: Initialize Terraform
+      run: terraform init
+
+    - name: Plan Terraform
+      env:
+        DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
+      run: terraform plan
+
+    - name: Generate Ansible inventory from Terraform output
+      run: |
+        terraform output -json ip | jq -r '.[]' > inventory.txt
+        cat inventory.txt
+        echo "[webservers]" > hosts.ini
+        cat inventory.txt >> hosts.ini
+
+    - name: Run Ansible playbook
+      run: ansible-playbook -i hosts.ini playbook.yml -u root --private-key ~/.ssh/id_rsa
