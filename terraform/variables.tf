@@ -5,6 +5,11 @@ variable "do_token" {
 
 }
 
+variable "ssh_public_key" {
+  description = "SSH public key content"
+  type        = string
+}
+
 variable "ssh_public_key_path" {
   description = "Path to the SSH public key"
   type        = string

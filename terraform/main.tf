@@ -4,7 +4,7 @@ provider "digitalocean" {
 
 resource "digitalocean_ssh_key" "default" {
   name       = "terraform-key"
-  public_key = file(var.ssh_public_key_path)
+  public_key = var.ssh_public_key
 }
 
 resource "digitalocean_droplet" "server" {

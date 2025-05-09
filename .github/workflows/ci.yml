@@ -38,8 +38,8 @@ jobs:
       run: |
         export TF_LOG=DEBUG
         terraform -chdir=terraform apply -auto-approve -input=false \
-        -var="do_token=${{ secrets.DIGITALOCEAN_TOKEN }}" \
-        -var="ssh_public_key_path=/home/runner/.ssh/id_rsa_do.pub"
+          -var="do_token=${{ secrets.DIGITALOCEAN_TOKEN }}" \
+          -var="ssh_public_key='${{ secrets.SSH_PRIVATE_KEY }}'"
 
     - name: Generate Ansible inventory from Terraform output
       run: |
