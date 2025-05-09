@@ -37,7 +37,9 @@ jobs:
     - name: Apply Terraform
       env:
         DIGITALOCEAN_TOKEN: ${{ secrets.DIGITALOCEAN_TOKEN }}
-      run: terraform -chdir=terraform apply -auto-approve
+      run: |
+        export TF_LOG=DEBUG
+        terraform -chdir=terraform apply -auto-approve -input=false
 
     - name: Generate Ansible inventory from Terraform output
       run: |
