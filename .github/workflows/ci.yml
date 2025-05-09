@@ -37,7 +37,9 @@ jobs:
     - name: Apply Terraform
       run: |
         export TF_LOG=DEBUG
-        terraform -chdir=terraform apply -auto-approve -input=false -var="do_token=${{ secrets.DIGITALOCEAN_TOKEN }}"
+        terraform -chdir=terraform apply -auto-approve -input=false \
+        -var="do_token=${{ secrets.DIGITALOCEAN_TOKEN }}" \
+        -var="ssh_public_key_path=/home/runner/.ssh/id_rsa_do.pub"
 
     - name: Generate Ansible inventory from Terraform output
       run: |
