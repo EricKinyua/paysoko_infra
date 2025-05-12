@@ -1,11 +1,11 @@
-# provider "digitalocean" {
-#   token = var.do_token
-# }
+provider "digitalocean" {
+  token = var.do_token
+}
 
-# resource "digitalocean_ssh_key" "default" {
-#   name       = "terraform-key"
-#   public_key = var.ssh_public_key
-# }
+resource "digitalocean_ssh_key" "default" {
+  name       = "terraform-key"
+  public_key = var.ssh_public_key
+}
 
 # resource "digitalocean_droplet" "server" {
 #   count    = 5
