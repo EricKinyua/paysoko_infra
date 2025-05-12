@@ -28,6 +28,7 @@ resource "digitalocean_database_cluster" "mysql" {
   region     = "nyc2"
   node_count = 1
   tags       = ["dev"]
+  //THIS
 }
 
 resource "digitalocean_database_db" "database" {
