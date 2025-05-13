@@ -31,7 +31,7 @@ resource "digitalocean_loadbalancer" "public" {
   }
 
 
-  droplet_ids = [digitalocean_droplet.server.*.id]
+  droplet_ids = digitalocean_droplet.server.*.id
 }
 # Create a PostgreSQL database cluster
 #Provision a managed database instance
