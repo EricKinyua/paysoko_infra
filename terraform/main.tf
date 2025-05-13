@@ -18,6 +18,21 @@ resource "digitalocean_droplet" "server" {
 
 
 }
+resource "digitalocean_loadbalancer" "public" {
+  name   = "loadbalancer"
+  region = "nyc2"
+
+  forwarding_rule {
+    entry_port     = 80
+    entry_protocol = "http"
+
+    target_port     = 3001
+    target_protocol = "http"
+  }
+
+
+  droplet_ids = [digitalocean_droplet.server.*.id]
+}
 # Create a PostgreSQL database cluster
 #Provision a managed database instance
 resource "digitalocean_database_cluster" "mysql" {
