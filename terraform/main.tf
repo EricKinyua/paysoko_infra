@@ -19,9 +19,9 @@ resource "digitalocean_droplet" "server" {
 
 }
 resource "digitalocean_certificate" "cert" {
-  name    = "certificate"
-  type    = "lets_encrypt"
-  domains = ["paysoko.lengaqu.com"]
+  name = "certificate"
+  type = "lets_encrypt"
+
 }
 resource "digitalocean_loadbalancer" "public" {
   name   = "loadbalancer"
