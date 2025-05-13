@@ -18,16 +18,23 @@ resource "digitalocean_droplet" "server" {
 
 
 }
+resource "digitalocean_certificate" "cert" {
+  name    = "certificate"
+  type    = "lets_encrypt"
+  domains = ["paysoko.lengaqu.com"]
+}
 resource "digitalocean_loadbalancer" "public" {
   name   = "loadbalancer"
   region = "nyc2"
 
   forwarding_rule {
-    entry_port     = 80
+    entry_port     = 443
     entry_protocol = "http"
 
     target_port     = 3001
     target_protocol = "http"
+
+    certificate_name = digitalocean_certificate.cert.name
   }
 
 
